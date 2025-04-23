@@ -64,14 +64,14 @@ while True:
         WebDriverWait(driver,10).until(
 
             # verif se todos elementos 'productCard' estão acessíveis
-            ec.presence_of_all_elements_located(By.CLASS_NAME, 'productCard')
+            ec.presence_of_all_elements_located((By.CLASS_NAME, 'productCard'))
 
         )
         print('Elementos encontrados com sucesso!')
     except TimeoutException:
         print('Tempo de espera excedido!')
     
-    produtos = driver.find_elements(By.CLASS_NAME,'productCard')
+    produtos = driver.find_elements(By.CLASS_NAME, 'productCard')
 
     for produto in produtos:
         try:
@@ -86,14 +86,39 @@ while True:
         except Exception:
             print('Não foi possível coletar dados: ', Exception)
             
-    # encontrar acesso aw proxima pagina
+    # encontrar acesso/botão da proxima pagina
+    try:
+        btn_proximo = WebDriverWait(driver,10).until(
+            ec.element_to_be_clickable((By.CLASS_NAME, 'nextLink')) # encontra elemento para clicar com o nome de classe respectivo
+        )
+        if btn_proximo:
+            # simulação de clicar e scrollar para achar btn prox page
+                # execute_script da controle ao Selenium
+            driver.execute_script('arguments[0].scrollIntoView();', btn_proximo)
 
-    # fechar navegador
+            # clicar no elemento
+            driver.execute_script('arguments[0].click();', btn_proximo)
+            pagina += 1
+            print(f'Indo para a página {pagina}')
+            time.sleep(5)
+        else:
+            print('Você chegou na última página')
+            break
 
-    # dataframe
+    except Exception as e:
+        print('Não foi possível avançar para a próxima página', e)
+        break
 
-    # salvar dados em csv()
+# fechar navegador
+driver.quit()
 
+# dataframe
+df = pd.DataFrame(dic_produtos)
+
+# salvar dados em excel
+df.to_excel('cadeiras.xlsx', index=False)
+
+print(f'Arquivo "cadeiras" salvo com sucesso! ({len(df)}) produtos capturados!')
 
 
 
