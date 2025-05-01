@@ -28,7 +28,9 @@ import pandas as pd
 import time
 
 # caminho ChromeDrver
-chrome_driver_path = r"C:\Program Files\chromedriver-win64\chromedriver-win64\chromedriver.exe"
+
+    # >>> ATENÇÃO <<< : para economizar espaço, o chromedriver foi colocado em outra pasta padrão, SEMPRE AJUSTAR QUANDO NECESSÁRIO : >>> ATENÇÃO <<< 
+chrome_driver_path = r"..\chromedriver.exe"
 
 # config webdriver (simulador do navegador)
 service = Service(chrome_driver_path) # control navegador pelo selenium
@@ -42,15 +44,15 @@ options.add_argument('--window_size=1920,1080') # define tamanho de tela fixo
 driver = webdriver.Chrome(service=service, options=options) # o segundo 'service' e 'options' são as variaveis declaradas previamente
 
 # define URL inicial (qual vai ser a primeira url)
-url_base = 'https://www.kabum.com.br/espaco-gamer/cadeiras-gamer'
+url_base = 'https://www.kabum.com.br/hardware/placa-de-video-vga?page_number=1'
 driver.get(url_base)
 
 # delay de espera
     # poderia fazer com assincrona
 time.sleep(5)
 
-# dicionario vazio para armazenar marcas e precos das cadeiras
-dic_produtos = {'marca':[], 'preco':[]}
+# dicionario vazio para armazenar os dados
+dic_produtos = {'nome':[], 'preco':[], 'frete_gratis': []}
 
 # contador de páginas
 pagina = 1
@@ -78,10 +80,17 @@ while True:
             nome = produto.find_element(By.CLASS_NAME, 'nameCard').text.strip()
             preco = produto.find_element(By.CLASS_NAME, 'priceCard').text.strip()
 
-            print(f'{nome} - {preco}')
+            try:
+                produto.find_element(By.CLASS_NAME, 'IconTruck')
+                frete_gratis = True
+            except:
+                frete_gratis = False
 
-            dic_produtos['marca'].append(nome)
+            print(f'{nome} - {preco} - {frete_gratis}')
+
+            dic_produtos['nome'].append(nome)
             dic_produtos['preco'].append(preco)
+            dic_produtos['frete_gratis'].append(frete_gratis)
 
         except Exception:
             print('Não foi possível coletar dados: ', Exception)
@@ -116,9 +125,9 @@ driver.quit()
 df = pd.DataFrame(dic_produtos)
 
 # salvar dados em excel
-df.to_excel('cadeiras.xlsx', index=False)
+df.to_excel('webscraping.xlsx', index=False)
 
-print(f'Arquivo "cadeiras" salvo com sucesso! ({len(df)}) produtos capturados!')
+print(f'Arquivo salvo com sucesso! ({len(df)}) produtos capturados!')
 
 
 
